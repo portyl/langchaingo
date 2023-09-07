@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/tmc/langchaingo/embeddings"
-	"github.com/tmc/langchaingo/llms/vertexai"
+	"github.com/portyl/langchaingo/embeddings"
+	"github.com/portyl/langchaingo/llms/vertexai"
 )
 
 // VertexAIPaLM is the embedder using the Google PaLM api.

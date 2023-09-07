@@ -1,6 +1,6 @@
 package prompts
 
-import "github.com/tmc/langchaingo/schema"
+import "github.com/portyl/langchaingo/schema"
 
 // Formatter is an interface for formatting a map of values into a string.
 type Formatter interface {

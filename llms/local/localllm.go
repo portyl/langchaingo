@@ -8,10 +8,10 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/tmc/langchaingo/callbacks"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/local/internal/localclient"
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/callbacks"
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/llms/local/internal/localclient"
+	"github.com/portyl/langchaingo/schema"
 )
 
 var (

@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tmc/langchaingo/chains"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/schema"
-	"github.com/tmc/langchaingo/tools"
+	"github.com/portyl/langchaingo/chains"
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/schema"
+	"github.com/portyl/langchaingo/tools"
 )
 
 const (

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const _userAgent = "langchaingo test (https://github.com/tmc/langchaingo)"
+const _userAgent = "langchaingo test (https://github.com/portyl/langchaingo)"
 
 func TestWikipedia(t *testing.T) {
 	t.Parallel()

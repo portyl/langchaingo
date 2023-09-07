@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/portyl/langchaingo/callbacks"
+	"github.com/portyl/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/prompts"
 	"github.com/stretchr/testify/require"
-	"github.com/tmc/langchaingo/callbacks"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/prompts"
 )
 
 func TestLLMChain(t *testing.T) {

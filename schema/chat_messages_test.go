@@ -3,7 +3,7 @@ package schema_test
 import (
 	"testing"
 
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/schema"
 )
 
 func TestGetBufferString(t *testing.T) {

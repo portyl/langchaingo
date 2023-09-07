@@ -1,6 +1,6 @@
 package openai
 
-import "github.com/tmc/langchaingo/llms/openai/internal/openaiclient"
+import "github.com/portyl/langchaingo/llms/openai/internal/openaiclient"
 
 const (
 	tokenEnvVarName        = "OPENAI_API_KEY"      //nolint:gosec

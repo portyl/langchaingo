@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/portyl/langchaingo/chains"
+	"github.com/portyl/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/memory"
+	"github.com/portyl/langchaingo/tools"
 	"github.com/stretchr/testify/require"
-	"github.com/tmc/langchaingo/chains"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/memory"
-	"github.com/tmc/langchaingo/tools"
 )
 
 func TestConversationalWithMemory(t *testing.T) {

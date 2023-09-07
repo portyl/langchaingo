@@ -1,4 +1,4 @@
-module github.com/tmc/langchaingo
+module github.com/portyl/langchaingo
 
 go 1.20
 

@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/portyl/langchaingo/chains"
+	openaiEmbeddings "github.com/portyl/langchaingo/embeddings/openai"
+	"github.com/portyl/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/schema"
+	"github.com/portyl/langchaingo/vectorstores"
+	"github.com/portyl/langchaingo/vectorstores/pinecone"
 	"github.com/stretchr/testify/require"
-	"github.com/tmc/langchaingo/chains"
-	openaiEmbeddings "github.com/tmc/langchaingo/embeddings/openai"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/schema"
-	"github.com/tmc/langchaingo/vectorstores"
-	"github.com/tmc/langchaingo/vectorstores/pinecone"
 )
 
 func getValues(t *testing.T) (string, string, string, string) {

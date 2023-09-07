@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/ledongthuc/pdf"
+	"github.com/portyl/langchaingo/textsplitter"
 	"github.com/stretchr/testify/assert"
-	"github.com/tmc/langchaingo/textsplitter"
 )
 
 func TestPDFLoader(t *testing.T) {

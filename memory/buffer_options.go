@@ -1,6 +1,6 @@
 package memory
 
-import "github.com/tmc/langchaingo/schema"
+import "github.com/portyl/langchaingo/schema"
 
 // ConversationBufferOption is a function for creating new buffer
 // with other then the default values.

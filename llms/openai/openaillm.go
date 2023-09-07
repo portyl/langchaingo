@@ -3,10 +3,10 @@ package openai
 import (
 	"context"
 
-	"github.com/tmc/langchaingo/callbacks"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/openai/internal/openaiclient"
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/callbacks"
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/llms/openai/internal/openaiclient"
+	"github.com/portyl/langchaingo/schema"
 )
 
 type LLM struct {

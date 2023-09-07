@@ -1,6 +1,6 @@
 package ernie
 
-import "github.com/tmc/langchaingo/llms/ernie"
+import "github.com/portyl/langchaingo/llms/ernie"
 
 const (
 	// see: https://cloud.baidu.com/doc/WENXINWORKSHOP/s/alj562vvu#body%E5%8F%82%E6%95%B0

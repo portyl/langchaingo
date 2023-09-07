@@ -5,10 +5,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/portyl/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/tools/sqldatabase"
+	"github.com/portyl/langchaingo/tools/sqldatabase/mysql"
 	"github.com/stretchr/testify/require"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/tools/sqldatabase"
-	"github.com/tmc/langchaingo/tools/sqldatabase/mysql"
 )
 
 func TestSQLDatabaseChain_Call(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/schema"
 )
 
 const (

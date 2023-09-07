@@ -3,7 +3,7 @@ package outputparser
 import (
 	"strings"
 
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/schema"
 )
 
 // CommaSeparatedList is an output parser used to parse the output of an llm as a

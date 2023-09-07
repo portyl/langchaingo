@@ -11,7 +11,7 @@ This tutorial gives you a quick walkthrough about building an end-to-end languag
 To get started, install LangChain but running the following command in the directory of your project:
 
 ```bash 
-go get github.com/tmc/langchaingo
+go get github.com/portyl/langchaingo
 ```
 ## Picking up a LLM
 
@@ -32,7 +32,7 @@ The most basic building block of LangChain is calling an LLM on some input. Let'
 In order to do this, we first need to import the LLM wrapper.
 
 ```go
-import "github.com/tmc/langchaingo/llms/openai"
+import "github.com/portyl/langchaingo/llms/openai"
 ```
 
 We will then need to set the the OpenAI key. There are two options here:
@@ -77,7 +77,7 @@ First lets define the prompt template:
 ```go
 package main
 
-import "github.com/tmc/langchaingo/prompts"
+import "github.com/portyl/langchaingo/prompts"
 
 func main() {
   template := "What is a good name for a company that makes {{.product}}?"
@@ -116,9 +116,9 @@ Extending the previous example, we can construct an LLMChain which takes user in
 import (
 	"log"
 
-	"github.com/tmc/langchaingo/chains"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/prompts"
+	"github.com/portyl/langchaingo/chains"
+	"github.com/portyl/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/prompts"
 )
 
 func main() {
@@ -191,11 +191,11 @@ import (
   "log"
 	"os"
 
-	"github.com/tmc/langchaingo/agents"
-	"github.com/tmc/langchaingo/chains"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/tools"
-	"github.com/tmc/langchaingo/tools/serpapi"
+	"github.com/portyl/langchaingo/agents"
+	"github.com/portyl/langchaingo/chains"
+	"github.com/portyl/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/tools"
+	"github.com/portyl/langchaingo/tools/serpapi"
 )
 
 func main() {

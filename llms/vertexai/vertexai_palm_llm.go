@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/tmc/langchaingo/callbacks"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/vertexai/internal/vertexaiclient"
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/callbacks"
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/llms/vertexai/internal/vertexaiclient"
+	"github.com/portyl/langchaingo/schema"
 )
 
 var (

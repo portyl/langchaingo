@@ -1,6 +1,6 @@
 package memory
 
-import "github.com/tmc/langchaingo/schema"
+import "github.com/portyl/langchaingo/schema"
 
 // ChatMessageHistoryOption is a function for creating new chat message history
 // with other then the default values.

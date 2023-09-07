@@ -3,8 +3,8 @@ package ernie
 import (
 	"context"
 
-	"github.com/tmc/langchaingo/embeddings"
-	"github.com/tmc/langchaingo/llms/ernie"
+	"github.com/portyl/langchaingo/embeddings"
+	"github.com/portyl/langchaingo/llms/ernie"
 )
 
 // Ernie Embedding-V1 doc: https://cloud.baidu.com/doc/WENXINWORKSHOP/s/alj562vvu

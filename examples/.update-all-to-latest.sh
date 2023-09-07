@@ -9,7 +9,7 @@ syncref="${1:-main}"
 for gm in $(find . -name go.mod); do
   (
   cd $(dirname $gm)
-  go get -u github.com/tmc/langchaingo@${syncref}
+  go get -u github.com/portyl/langchaingo@${syncref}
   go mod tidy
 )
 done

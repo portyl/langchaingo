@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/portyl/langchaingo/schema"
 	"github.com/stretchr/testify/assert"
-	"github.com/tmc/langchaingo/schema"
 )
 
 func TestChatMessageHistory(t *testing.T) {

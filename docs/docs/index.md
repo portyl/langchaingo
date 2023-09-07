@@ -34,7 +34,7 @@ These modules are, in increasing order of complexity:
 
 ## API Reference
 
-[Here](https://pkg.go.dev/github.com/tmc/langchaingo) you can find the API reference for all of the modules in LangChain, as well as full documentation for all exported classes and functions.
+[Here](https://pkg.go.dev/github.com/portyl/langchaingo) you can find the API reference for all of the modules in LangChain, as well as full documentation for all exported classes and functions.
 
 ## Additional Resources
 

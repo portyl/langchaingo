@@ -3,7 +3,7 @@ package llms
 import (
 	"context"
 
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/schema"
 )
 
 // LanguageModel is the interface all language models must implement.

@@ -3,9 +3,9 @@ package vertexai
 import (
 	"context"
 
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/vertexai/internal/vertexaiclient"
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/llms/vertexai/internal/vertexaiclient"
+	"github.com/portyl/langchaingo/schema"
 )
 
 const (

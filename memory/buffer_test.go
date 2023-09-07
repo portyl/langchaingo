@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
+	"github.com/portyl/langchaingo/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/tmc/langchaingo/schema"
 )
 
 func TestBufferMemory(t *testing.T) {

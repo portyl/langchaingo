@@ -1,6 +1,6 @@
 package vectorstores
 
-import "github.com/tmc/langchaingo/embeddings"
+import "github.com/portyl/langchaingo/embeddings"
 
 // Option is a function that configures an Options.
 type Option func(*Options)

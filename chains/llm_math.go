@@ -6,10 +6,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/memory"
-	"github.com/tmc/langchaingo/prompts"
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/memory"
+	"github.com/portyl/langchaingo/prompts"
+	"github.com/portyl/langchaingo/schema"
 	"go.starlark.net/lib/math"
 	"go.starlark.net/starlark"
 )

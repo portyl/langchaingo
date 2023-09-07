@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/llms/openai"
 )
 
 func main() {

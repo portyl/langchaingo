@@ -3,8 +3,8 @@ package outputparser_test
 import (
 	"testing"
 
+	"github.com/portyl/langchaingo/outputparser"
 	"github.com/stretchr/testify/assert"
-	"github.com/tmc/langchaingo/outputparser"
 )
 
 func TestCommaSeparatedList(t *testing.T) {

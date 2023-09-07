@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/tmc/langchaingo/llms/cohere"
+	"github.com/portyl/langchaingo/llms/cohere"
 )
 
 func main() {

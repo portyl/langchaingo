@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pinecone-io/go-pinecone/pinecone_grpc"
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/schema"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"

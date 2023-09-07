@@ -3,8 +3,8 @@ package textsplitter
 import (
 	"testing"
 
+	"github.com/portyl/langchaingo/schema"
 	"github.com/stretchr/testify/assert"
-	"github.com/tmc/langchaingo/schema"
 )
 
 func TestTokenSplitter(t *testing.T) {

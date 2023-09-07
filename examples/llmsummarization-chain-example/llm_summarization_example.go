@@ -6,10 +6,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/tmc/langchaingo/chains"
-	"github.com/tmc/langchaingo/documentloaders"
-	"github.com/tmc/langchaingo/llms/vertexai"
-	"github.com/tmc/langchaingo/textsplitter"
+	"github.com/portyl/langchaingo/chains"
+	"github.com/portyl/langchaingo/documentloaders"
+	"github.com/portyl/langchaingo/llms/vertexai"
+	"github.com/portyl/langchaingo/textsplitter"
 )
 
 func main() {

@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/portyl/langchaingo/llms"
+	"github.com/portyl/langchaingo/prompts"
+	"github.com/portyl/langchaingo/schema"
 	"github.com/stretchr/testify/require"
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/prompts"
-	"github.com/tmc/langchaingo/schema"
 )
 
 type testLanguageModel struct {

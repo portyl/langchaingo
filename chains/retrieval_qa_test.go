@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/portyl/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/prompts"
+	"github.com/portyl/langchaingo/schema"
 	"github.com/stretchr/testify/require"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/prompts"
-	"github.com/tmc/langchaingo/schema"
 )
 
 type testRetriever struct{}

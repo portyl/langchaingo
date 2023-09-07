@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/tmc/langchaingo/embeddings"
-	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/portyl/langchaingo/embeddings"
+	"github.com/portyl/langchaingo/llms/openai"
 )
 
 // OpenAI is the embedder using the OpenAI api.

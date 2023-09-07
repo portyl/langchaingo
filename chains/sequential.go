@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/tmc/langchaingo/internal/util"
-	"github.com/tmc/langchaingo/memory"
-	"github.com/tmc/langchaingo/schema"
+	"github.com/portyl/langchaingo/internal/util"
+	"github.com/portyl/langchaingo/memory"
+	"github.com/portyl/langchaingo/schema"
 )
 
 const delimiter = ","
