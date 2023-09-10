@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -150,6 +151,17 @@ func (c *Client) CreateGeneration(ctx context.Context, r *GenerationRequest) (*G
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("send request: %w", err)
+	}
+
+	if res.StatusCode != 200 {
+		defer res.Body.Close()
+
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		return nil, fmt.Errorf("generation request error: sttatus: %s body: %s", res.Status, string(b))
 	}
 
 	if r.StreamingFunc != nil {
