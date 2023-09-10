@@ -137,18 +137,19 @@ func (c *Client) CreateGeneration(ctx context.Context, r *GenerationRequest) (*G
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	// req.Header.Set("content-type", "application/json")
+	req.Header.Set("content-type", "application/json")
 	req.Header.Set("authorization", "bearer "+c.token)
 
 	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("send request: %w", err)
 	}
-	defer res.Body.Close()
 
 	if r.StreamingFunc != nil {
 		return parseStreamingChatResponse(ctx, res, r)
 	}
+
+	defer res.Body.Close()
 
 	var response generateResponsePayload
 
@@ -184,16 +185,16 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 			if line == "" {
 				continue
 			}
-			data := strings.Trim(line, "\n")
+			data := strings.Trim(line, "\r\t\n")
 			var streamPayload StreamedGeneration
 			err := json.NewDecoder(bytes.NewReader([]byte(data))).Decode(&streamPayload)
 			if err != nil {
 				log.Fatalf("failed to decode stream payload: %v", err)
 			}
+			responseChan <- streamPayload
 			if streamPayload.IsFinished {
 				return
 			}
-			responseChan <- streamPayload
 		}
 		if err := scanner.Err(); err != nil {
 			log.Println("issue scanning response:", err)
