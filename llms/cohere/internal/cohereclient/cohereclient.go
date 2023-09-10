@@ -1,11 +1,13 @@
 package cohereclient
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
@@ -66,15 +68,35 @@ func New(token string, baseURL string, model string, opts ...Option) (*Client, e
 
 type GenerationRequest struct {
 	Prompt string `json:"prompt"`
+
+	// StreamingFunc is a function to be called for each chunk of a streaming response.
+	// Return an error to stop streaming early.
+	StreamingFunc func(ctx context.Context, chunk []byte) error `json:"-"`
 }
 
 type Generation struct {
 	Text string `json:"text"`
 }
 
+type StreamedGeneration struct {
+	Text         string `json:"text"`
+	IsFinished   bool   `json:"is_finished"`
+	FinishReason string `json:"finish_reason"`
+	Response     struct {
+		ID          string `json:"id"`
+		Generations []struct {
+			ID           string `json:"id"`
+			Text         string `json:"text"`
+			FinishReason string `json:"finish_reason"`
+		} `json:"generations"`
+		Prompt string `json:"prompt"`
+	} `json:"response"`
+}
+
 type generateRequestPayload struct {
 	Prompt string `json:"prompt"`
 	Model  string `json:"model"`
+	Stream bool   `json:"stream"`
 }
 
 type generateResponsePayload struct {
@@ -96,6 +118,10 @@ func (c *Client) CreateGeneration(ctx context.Context, r *GenerationRequest) (*G
 		Model:  c.model,
 	}
 
+	if r.StreamingFunc != nil {
+		payload.Stream = true
+	}
+
 	payloadBytes, err := json.Marshal(&payload)
 	if err != nil {
 		return nil, fmt.Errorf("marshal payload: %w", err)
@@ -111,7 +137,7 @@ func (c *Client) CreateGeneration(ctx context.Context, r *GenerationRequest) (*G
 		return nil, fmt.Errorf("create request: %w", err)
 	}
 
-	req.Header.Set("content-type", "application/json")
+	// req.Header.Set("content-type", "application/json")
 	req.Header.Set("authorization", "bearer "+c.token)
 
 	res, err := c.httpClient.Do(req)
@@ -120,7 +146,12 @@ func (c *Client) CreateGeneration(ctx context.Context, r *GenerationRequest) (*G
 	}
 	defer res.Body.Close()
 
+	if r.StreamingFunc != nil {
+		return parseStreamingChatResponse(ctx, res, r)
+	}
+
 	var response generateResponsePayload
+
 	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
 		return nil, fmt.Errorf("parse response: %w", err)
 	}
@@ -141,4 +172,44 @@ func (c *Client) CreateGeneration(ctx context.Context, r *GenerationRequest) (*G
 func (c *Client) GetNumTokens(text string) int {
 	encoded, _ := c.encoder.Encode(text)
 	return len(encoded)
+}
+
+func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *GenerationRequest) (*Generation, error) { //nolint:cyclop,lll
+	scanner := bufio.NewScanner(r.Body)
+	responseChan := make(chan StreamedGeneration)
+	go func() {
+		defer close(responseChan)
+		for scanner.Scan() {
+			line := scanner.Text()
+			if line == "" {
+				continue
+			}
+			data := strings.Trim(line, "\n")
+			var streamPayload StreamedGeneration
+			err := json.NewDecoder(bytes.NewReader([]byte(data))).Decode(&streamPayload)
+			if err != nil {
+				log.Fatalf("failed to decode stream payload: %v", err)
+			}
+			if streamPayload.IsFinished {
+				return
+			}
+			responseChan <- streamPayload
+		}
+		if err := scanner.Err(); err != nil {
+			log.Println("issue scanning response:", err)
+		}
+	}()
+	// Parse response
+	response := Generation{}
+
+	for streamResponse := range responseChan {
+		chunk := []byte(streamResponse.Text)
+		if payload.StreamingFunc != nil {
+			err := payload.StreamingFunc(ctx, chunk)
+			if err != nil {
+				return nil, fmt.Errorf("streaming func returned an error: %w", err)
+			}
+		}
+	}
+	return &response, nil
 }
