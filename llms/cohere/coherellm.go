@@ -54,6 +54,7 @@ func (o *LLM) Generate(ctx context.Context, prompts []string, options ...llms.Ca
 	for _, prompt := range prompts {
 		result, err := o.client.CreateGeneration(ctx, &cohereclient.GenerationRequest{
 			Prompt:        prompt,
+			MaxTokens:     opts.MaxTokens,
 			StreamingFunc: opts.StreamingFunc,
 		})
 		if err != nil {

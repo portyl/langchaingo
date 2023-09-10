@@ -67,7 +67,8 @@ func New(token string, baseURL string, model string, opts ...Option) (*Client, e
 }
 
 type GenerationRequest struct {
-	Prompt string `json:"prompt"`
+	Prompt    string `json:"prompt"`
+	MaxTokens int    `json:"max_tokens"`
 
 	// StreamingFunc is a function to be called for each chunk of a streaming response.
 	// Return an error to stop streaming early.
@@ -94,9 +95,10 @@ type StreamedGeneration struct {
 }
 
 type generateRequestPayload struct {
-	Prompt string `json:"prompt"`
-	Model  string `json:"model"`
-	Stream bool   `json:"stream"`
+	Prompt    string `json:"prompt"`
+	Model     string `json:"model"`
+	MaxTokens int    `json:"max_tokens"`
+	Stream    bool   `json:"stream"`
 }
 
 type generateResponsePayload struct {
@@ -113,9 +115,14 @@ func (c *Client) CreateGeneration(ctx context.Context, r *GenerationRequest) (*G
 		c.baseURL = "https://api.cohere.ai"
 	}
 
+	if r.MaxTokens == 0 {
+		r.MaxTokens = 300
+	}
+
 	payload := generateRequestPayload{
-		Prompt: r.Prompt,
-		Model:  c.model,
+		Prompt:    r.Prompt,
+		Model:     c.model,
+		MaxTokens: r.MaxTokens,
 	}
 
 	if r.StreamingFunc != nil {
@@ -211,6 +218,7 @@ func parseStreamingChatResponse(ctx context.Context, r *http.Response, payload *
 				return nil, fmt.Errorf("streaming func returned an error: %w", err)
 			}
 		}
+		response.Text += streamResponse.Text
 	}
 	return &response, nil
 }
