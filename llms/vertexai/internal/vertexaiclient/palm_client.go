@@ -369,8 +369,6 @@ func (c *PaLMClient) chat(
 		}
 	}
 
-	context := r.Context
-
 	messages := []interface{}{}
 	for _, msg := range r.Messages {
 		if msg.GetType() == schema.ChatMessageTypeHuman ||
@@ -380,13 +378,11 @@ func (c *PaLMClient) chat(
 				"content": msg.Content,
 			}
 			messages = append(messages, msgMap)
-		} else if msg.GetType() == schema.ChatMessageTypeSystem {
-			context += "\n" + msg.Content
 		}
 	}
 
 	instance := map[string]any{
-		"context":  context,
+		"context":  r.Context,
 		"messages": messages,
 	}
 
