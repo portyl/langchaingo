@@ -1,3 +1,5 @@
+## This fork is unstable and subject to change. I do not have any plans of maintaining it actively, and therefore do not recommend its use in production environments.
+
 # 🦜️🔗 LangChain Go
 
 [![go.dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/tmc/langchaingo)
