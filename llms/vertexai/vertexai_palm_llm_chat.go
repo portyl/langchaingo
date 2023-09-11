@@ -2,6 +2,7 @@ package vertexai
 
 import (
 	"context"
+	"strings"
 
 	"github.com/portyl/langchaingo/llms"
 	"github.com/portyl/langchaingo/llms/vertexai/internal/vertexaiclient"
@@ -45,12 +46,24 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 
 	generations := make([]*llms.Generation, 0, len(messageSets))
 	for _, messages := range messageSets {
+		var contextPieces []string
+
+		for _, m := range messages {
+			if m.GetType() == schema.ChatMessageTypeSystem {
+				contextPieces = append(contextPieces, m.GetContent())
+			}
+		}
+
 		msgs := toClientChatMessage(messages)
 		result, err := o.client.CreateChat(ctx, &vertexaiclient.ChatRequest{
-			Temperature:   opts.Temperature,
-			Messages:      msgs,
-			Model:         opts.Model,
-			StreamingFunc: opts.StreamingFunc,
+			Context:         strings.Join(contextPieces, "\n"),
+			Temperature:     opts.Temperature,
+			TopP:            opts.TopP,
+			TopK:            opts.TopK,
+			MaxOutputTokens: opts.MaxTokens,
+			Messages:        msgs,
+			Model:           opts.Model,
+			StreamingFunc:   opts.StreamingFunc,
 		})
 		if err != nil {
 			return nil, err
@@ -78,28 +91,25 @@ func (o *Chat) GetNumTokens(text string) int {
 }
 
 func toClientChatMessage(messages []schema.ChatMessage) []*vertexaiclient.ChatMessage {
-	msgs := make([]*vertexaiclient.ChatMessage, len(messages))
-	for i, m := range messages {
+	var msgs []*vertexaiclient.ChatMessage
+	for _, m := range messages {
 		msg := &vertexaiclient.ChatMessage{
 			Content: m.GetContent(),
 		}
 		typ := m.GetType()
 		switch typ {
-		case schema.ChatMessageTypeSystem:
-			msg.Author = botAuthor
 		case schema.ChatMessageTypeAI:
 			msg.Author = botAuthor
 		case schema.ChatMessageTypeHuman:
 			msg.Author = userAuthor
-		case schema.ChatMessageTypeGeneric:
-			msg.Author = userAuthor
-		case schema.ChatMessageTypeFunction:
-			msg.Author = userAuthor
+		}
+		if msg.Author == "" {
+			continue
 		}
 		if n, ok := m.(schema.Named); ok {
 			msg.Author = n.GetName()
 		}
-		msgs[i] = msg
+		msgs = append(msgs, msg)
 	}
 	return msgs
 }
