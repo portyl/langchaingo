@@ -385,8 +385,6 @@ func (c *PaLMClient) chat(
 		}
 	}
 
-	messages = append(messages, map[string]any{"author": "user", "content": "Who is Rick Astley?"})
-
 	instance := map[string]any{
 		"context":  context,
 		"messages": messages,
