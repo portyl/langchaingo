@@ -42,16 +42,15 @@ func (o *Chat) Generate(ctx context.Context, messageSets [][]schema.ChatMessage,
 	for _, opt := range options {
 		opt(&opts)
 	}
-	if opts.StreamingFunc != nil {
-		return nil, ErrNotImplemented
-	}
 
 	generations := make([]*llms.Generation, 0, len(messageSets))
 	for _, messages := range messageSets {
 		msgs := toClientChatMessage(messages)
 		result, err := o.client.CreateChat(ctx, &vertexaiclient.ChatRequest{
-			Temperature: opts.Temperature,
-			Messages:    msgs,
+			Temperature:   opts.Temperature,
+			Messages:      msgs,
+			Model:         opts.Model,
+			StreamingFunc: opts.StreamingFunc,
 		})
 		if err != nil {
 			return nil, err

@@ -2,8 +2,11 @@ package vertexaiclient
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"runtime"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
@@ -45,6 +48,7 @@ const (
 type PaLMClient struct {
 	client    *aiplatform.PredictionClient
 	projectID string
+	model     string
 }
 
 // New returns a new Vertex AI based PaLM API client.
@@ -158,6 +162,9 @@ type ChatRequest struct {
 	TopP           int            `json:"top_p,omitempty"`
 	TopK           int            `json:"top_k,omitempty"`
 	CandidateCount int            `json:"candidate_count,omitempty"`
+	Model          string         `json:"-"`
+
+	StreamingFunc func(context.Context, []byte) error
 }
 
 // ChatMessage is a message in a chat.
@@ -167,6 +174,8 @@ type ChatMessage struct {
 	// The name of the author of this message. user or bot
 	Author string `json:"author,omitempty"`
 }
+
+type StreamedChatResponse = ChatResponse
 
 // Statically assert that the types implement the interface.
 var _ schema.ChatMessage = ChatMessage{}
@@ -188,15 +197,67 @@ func (m ChatMessage) GetContent() string {
 
 // ChatResponse is a response to a chat request.
 type ChatResponse struct {
-	Candidates []ChatMessage
+	Candidates []ChatMessage `json:"candidates"`
 }
 
 // CreateChat creates chat request.
 func (c *PaLMClient) CreateChat(ctx context.Context, r *ChatRequest) (*ChatResponse, error) {
-	responses, err := c.chat(ctx, r)
+	responses, stream, err := c.chat(ctx, r, r.StreamingFunc != nil)
 	if err != nil {
 		return nil, err
 	}
+
+	if stream != nil {
+		defer stream.CloseSend()
+
+		var msgAuthor string
+		var msgContent string
+
+		for stream.Context().Err() == nil {
+			msg, err := stream.Recv()
+			if err != nil {
+				if err == io.EOF {
+					break
+				}
+
+				return nil, err
+			}
+
+			if len(msg.Outputs) > 0 {
+				result := convertTensorStructToMap(msg.Outputs[0])
+
+				b, err := json.Marshal(result)
+				if err != nil {
+					return nil, err
+				}
+
+				var parsed StreamedChatResponse
+
+				if err := json.Unmarshal(b, &parsed); err != nil {
+					return nil, err
+				}
+
+				if len(parsed.Candidates) > 0 {
+					c := parsed.Candidates[0]
+
+					if msgAuthor == "" {
+						msgAuthor = c.Author
+					}
+
+					msgContent += c.Content
+
+					r.StreamingFunc(ctx, []byte(c.Content))
+				}
+			}
+		}
+
+		return &ChatResponse{
+			Candidates: []ChatMessage{
+				{Author: msgAuthor, Content: msgContent},
+			},
+		}, nil
+	}
+
 	chatResponse := &ChatResponse{}
 	res := responses[0]
 	value := res.GetStructValue().AsMap()
@@ -275,7 +336,19 @@ func (c *PaLMClient) batchPredict(ctx context.Context, model string, prompts []s
 	return resp.Predictions, nil
 }
 
-func (c *PaLMClient) chat(ctx context.Context, r *ChatRequest) ([]*structpb.Value, error) {
+func (c *PaLMClient) chat(
+	ctx context.Context,
+	r *ChatRequest,
+	stream bool,
+) ([]*structpb.Value, aiplatformpb.PredictionService_ServerStreamingPredictClient, error) {
+	if c.model == "" {
+		c.model = ChatModelName
+	}
+
+	if r.Model != "" {
+		c.model = r.Model
+	}
+
 	params := map[string]interface{}{
 		"temperature": r.Temperature,
 		"top_p":       r.TopP,
@@ -290,30 +363,126 @@ func (c *PaLMClient) chat(ctx context.Context, r *ChatRequest) ([]*structpb.Valu
 		}
 		messages = append(messages, msgMap)
 	}
-	instance, err := structpb.NewStruct(map[string]interface{}{
+	instance := map[string]any{
 		"context":  r.Context,
 		"messages": messages,
-	})
+	}
+	instances := []map[string]any{instance}
+
+	if stream {
+		s, err := c.client.ServerStreamingPredict(ctx, &aiplatformpb.StreamingPredictRequest{
+			Endpoint:   c.projectLocationPublisherModelPath(c.projectID, "us-central1", "google", c.model),
+			Inputs:     convertToTensor(instances).ListVal,
+			Parameters: convertToTensor(mergedParams),
+		})
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return nil, s, nil
+	}
+
+	formattedInstance, err := structpb.NewValue(instances)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	instances := []*structpb.Value{
-		structpb.NewStructValue(instance),
-	}
+	formattedInstances := []*structpb.Value{formattedInstance}
+
 	resp, err := c.client.Predict(ctx, &aiplatformpb.PredictRequest{
-		Endpoint:   c.projectLocationPublisherModelPath(c.projectID, "us-central1", "google", ChatModelName),
-		Instances:  instances,
+		Endpoint:   c.projectLocationPublisherModelPath(c.projectID, "us-central1", "google", c.model),
+		Instances:  formattedInstances,
 		Parameters: structpb.NewStructValue(mergedParams),
 	})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if len(resp.Predictions) == 0 {
-		return nil, ErrEmptyResponse
+		return nil, nil, ErrEmptyResponse
 	}
-	return resp.Predictions, nil
+	return resp.Predictions, nil, nil
 }
 
 func (c *PaLMClient) projectLocationPublisherModelPath(projectID, location, publisher, model string) string {
 	return fmt.Sprintf("projects/%s/locations/%s/publishers/%s/models/%s", projectID, location, publisher, model)
+}
+
+func convertToTensor(v interface{}) *aiplatformpb.Tensor {
+	var tensor aiplatformpb.Tensor
+
+	switch val := v.(type) {
+	case string:
+		tensor.Dtype = aiplatformpb.Tensor_STRING
+		tensor.StringVal = append(tensor.StringVal, val)
+	case bool:
+		tensor.Dtype = aiplatformpb.Tensor_BOOL
+		tensor.BoolVal = append(tensor.BoolVal, val)
+	case int:
+		tensor.Dtype = aiplatformpb.Tensor_INT64
+		tensor.IntVal = append(tensor.IntVal, int32(val))
+	case float64:
+		tensor.Dtype = aiplatformpb.Tensor_FLOAT
+		tensor.FloatVal = append(tensor.FloatVal, float32(val))
+	case []interface{}:
+		var converted []*aiplatformpb.Tensor
+
+		for _, i := range val {
+			converted = append(converted, convertToTensor(i))
+		}
+
+		tensor.ListVal = converted
+	case []map[string]interface{}:
+		var converted []*aiplatformpb.Tensor
+
+		for _, i := range val {
+			converted = append(converted, convertToTensor(i))
+		}
+
+		// tensor.Dtype = aiplatformpb.Tensor_DATA_TYPE_UNSPECIFIED
+		tensor.ListVal = converted
+	case map[string]interface{}:
+		converted := make(map[string]*aiplatformpb.Tensor)
+
+		for k, v := range val {
+			converted[k] = convertToTensor(v)
+		}
+
+		// tensor.Dtype = aiplatformpb.Tensor_DATA_TYPE_UNSPECIFIED
+		tensor.StructVal = converted
+	default:
+		log.Printf("%T\n", v)
+	}
+
+	return &tensor
+}
+
+func convertTensorStructToMap(tensor *aiplatformpb.Tensor) map[string]interface{} {
+	result := make(map[string]interface{})
+
+	if tensor == nil || tensor.StructVal == nil {
+		return result
+	}
+
+	for key, value := range tensor.StructVal {
+		switch {
+		case len(value.StringVal) > 0:
+			result[key] = value.StringVal[0]
+		case len(value.BoolVal) > 0:
+			result[key] = value.BoolVal[0]
+		case len(value.Int64Val) > 0:
+			result[key] = value.Int64Val[0]
+		case len(value.FloatVal) > 0:
+			result[key] = value.FloatVal[0]
+		case len(value.ListVal) > 0: // assuming every item is a struct here
+			list := make([]interface{}, len(value.ListVal))
+			for i, item := range value.ListVal {
+				list[i] = convertTensorStructToMap(item)
+			}
+			result[key] = list
+		case value.StructVal != nil:
+			result[key] = convertTensorStructToMap(value)
+		}
+	}
+
+	return result
+
 }
