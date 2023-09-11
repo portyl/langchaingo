@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"runtime"
 
 	aiplatform "cloud.google.com/go/aiplatform/apiv1"
@@ -82,7 +81,7 @@ type CompletionRequest struct {
 	Prompts     []string `json:"prompts"`
 	MaxTokens   int      `json:"max_tokens"`
 	Temperature float64  `json:"temperature,omitempty"`
-	TopP        int      `json:"top_p,omitempty"`
+	TopP        float64  `json:"top_p,omitempty"`
 	TopK        int      `json:"top_k,omitempty"`
 }
 
@@ -96,8 +95,8 @@ func (c *PaLMClient) CreateCompletion(ctx context.Context, r *CompletionRequest)
 	params := map[string]interface{}{
 		"maxOutputTokens": r.MaxTokens,
 		"temperature":     r.Temperature,
-		"top_p":           r.TopP,
-		"top_k":           r.TopK,
+		"topP":            r.TopP,
+		"topK":            r.TopK,
 	}
 	predictions, err := c.batchPredict(ctx, TextModelName, r.Prompts, params)
 	if err != nil {
@@ -156,13 +155,14 @@ func (c *PaLMClient) CreateEmbedding(ctx context.Context, r *EmbeddingRequest) (
 
 // ChatRequest is a request to create an embedding.
 type ChatRequest struct {
-	Context        string         `json:"context"`
-	Messages       []*ChatMessage `json:"messages"`
-	Temperature    float64        `json:"temperature,omitempty"`
-	TopP           int            `json:"top_p,omitempty"`
-	TopK           int            `json:"top_k,omitempty"`
-	CandidateCount int            `json:"candidate_count,omitempty"`
-	Model          string         `json:"-"`
+	Context         string         `json:"context"`
+	Messages        []*ChatMessage `json:"messages"`
+	Temperature     float64        `json:"temperature,omitempty"`
+	TopP            float64        `json:"top_p,omitempty"`
+	TopK            int            `json:"top_k,omitempty"`
+	MaxOutputTokens int            `json:"max_output_tokens,omitempty"`
+	CandidateCount  int            `json:"candidate_count,omitempty"`
+	Model           string         `json:"-"`
 
 	StreamingFunc func(context.Context, []byte) error
 }
@@ -185,8 +185,10 @@ func (m ChatMessage) GetType() schema.ChatMessageType {
 	switch m.Author {
 	case "user":
 		return schema.ChatMessageTypeHuman
-	default:
+	case "bot":
 		return schema.ChatMessageTypeAI
+	default:
+		return schema.ChatMessageTypeGeneric
 	}
 }
 
@@ -202,7 +204,7 @@ type ChatResponse struct {
 
 // CreateChat creates chat request.
 func (c *PaLMClient) CreateChat(ctx context.Context, r *ChatRequest) (*ChatResponse, error) {
-	responses, stream, err := c.chat(ctx, r, r.StreamingFunc != nil)
+	responses, stream, err := c.chat(context.Background(), r, r.StreamingFunc != nil)
 	if err != nil {
 		return nil, err
 	}
@@ -350,23 +352,46 @@ func (c *PaLMClient) chat(
 	}
 
 	params := map[string]interface{}{
-		"temperature": r.Temperature,
-		"top_p":       r.TopP,
-		"top_k":       r.TopK,
+		"temperature":     r.Temperature,
+		"maxOutputTokens": r.MaxOutputTokens,
+		"topP":            r.TopP,
+		"topK":            r.TopK,
 	}
-	mergedParams := mergeParams(defaultParameters, params)
+
+	mergedParams := make(map[string]interface{})
+	for k, v := range params {
+		mergedParams[k] = v
+	}
+
+	for k, v := range params {
+		if i, ok := v.(float64); ok && i == 0 {
+			params[k] = defaultParameters[k]
+		}
+	}
+
+	context := r.Context
+
 	messages := []interface{}{}
 	for _, msg := range r.Messages {
-		msgMap := map[string]interface{}{
-			"author":  msg.Author,
-			"content": msg.Content,
+		if msg.GetType() == schema.ChatMessageTypeHuman ||
+			msg.GetType() == schema.ChatMessageTypeAI {
+			msgMap := map[string]interface{}{
+				"author":  msg.Author,
+				"content": msg.Content,
+			}
+			messages = append(messages, msgMap)
+		} else if msg.GetType() == schema.ChatMessageTypeSystem {
+			context += "\n" + msg.Content
 		}
-		messages = append(messages, msgMap)
 	}
+
+	messages = append(messages, map[string]any{"author": "user", "content": "Who is Rick Astley?"})
+
 	instance := map[string]any{
-		"context":  r.Context,
+		"context":  context,
 		"messages": messages,
 	}
+
 	instances := []map[string]any{instance}
 
 	if stream {
@@ -391,7 +416,7 @@ func (c *PaLMClient) chat(
 	resp, err := c.client.Predict(ctx, &aiplatformpb.PredictRequest{
 		Endpoint:   c.projectLocationPublisherModelPath(c.projectID, "us-central1", "google", c.model),
 		Instances:  formattedInstances,
-		Parameters: structpb.NewStructValue(mergedParams),
+		Parameters: structpb.NewStructValue(mergeParams(defaultParameters, params)),
 	})
 	if err != nil {
 		return nil, nil, err
@@ -449,7 +474,7 @@ func convertToTensor(v interface{}) *aiplatformpb.Tensor {
 		// tensor.Dtype = aiplatformpb.Tensor_DATA_TYPE_UNSPECIFIED
 		tensor.StructVal = converted
 	default:
-		log.Printf("%T\n", v)
+		// log.Printf("%T\n", v)
 	}
 
 	return &tensor
